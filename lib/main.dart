@@ -11,7 +11,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Fitness Tracker',
-      debugShowCheckedModeBanner: false,
       home: HomeScreen(),
     );
   }
@@ -21,8 +20,8 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   Future<String> getWorkoutTip() async {
-    await Future.delayed(Duration(seconds: 2));
-    return "Stay hydrated during workouts!";
+    await Future.delayed(Duration(seconds: 3));
+    return "Remember to stay hydrated during workouts!";
   }
 
   @override
@@ -35,19 +34,42 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Colors.pinkAccent,
       ),
       body: Center(
-        child: FutureBuilder(
-          future: getWorkoutTip(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
-            }
-            return Text(
-              snapshot.data ?? "Welcome to Fitness Tracker",
-              style: TextStyle(fontSize: 20),
-            );
-          },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+            FutureBuilder(
+              future: getWorkoutTip(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                }
+                return Text(
+                  snapshot.data ?? "Welcome to Fitness Tracker",
+                  style: TextStyle(fontSize: 20),
+                  textAlign: TextAlign.center,
+                );
+              },
+            ),
+
+            SizedBox(height: 30),
+
+            // future feature
+            ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Healthy Meal Suggestions Coming Soon!"),
+                  ),
+                );
+              },
+              child: Text("Healthy Meals"),
+             ),
+
+          ],
         ),
       ),
-    );
+            );
+
   }
 }
