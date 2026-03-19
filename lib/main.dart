@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/bmi_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -158,7 +159,6 @@ class _WorkoutTileState extends State<WorkoutTile> {
           ),
 
           Positioned(
-            top: 5,
             right: 5,
             child: IconButton(
               icon: Icon(
