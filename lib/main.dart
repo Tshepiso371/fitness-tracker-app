@@ -104,12 +104,12 @@ class HomeScreen extends StatelessWidget {
                   padding: EdgeInsets.all(10),
                   children: const [
 
-                    WorkoutTile(title: "Cardio", color: Colors.pinkAccent),
-                    WorkoutTile(title: "Strength", color: Colors.blue),
-                    WorkoutTile(title: "Flexibility", color: Colors.green),
-                    WorkoutTile(title: "HIIT", color: Colors.orange),
-                    WorkoutTile(title: "Yoga", color: Colors.deepPurpleAccent),
-                    WorkoutTile(title: "Pilates", color: Colors.tealAccent)
+                    WorkoutTile(title: "Cardio", color: Colors.lightBlueAccent),
+                    WorkoutTile(title: "Strength", color: Colors.lightBlueAccent),
+                    WorkoutTile(title: "Flexibility", color: Colors.lightBlueAccent),
+                    WorkoutTile(title: "HIIT", color: Colors.lightBlueAccent),
+                    WorkoutTile(title: "Yoga", color: Colors.lightBlueAccent),
+                    WorkoutTile(title: "Pilates", color: Colors.lightBlueAccent)
 
                   ],
                 );
@@ -163,7 +163,7 @@ class _WorkoutTileState extends State<WorkoutTile> {
             child: IconButton(
               icon: Icon(
                 isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: Colors.white,
+                color: Colors.pink,
               ),
               onPressed: () {
                 setState(() {
