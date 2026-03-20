@@ -26,6 +26,17 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Fitness Tracker"),
         backgroundColor: Colors.pinkAccent,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.calculate),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => BMIScreen()),
+              );
+            },
+          ),
+        ],
       ),
 
       body: Column(
