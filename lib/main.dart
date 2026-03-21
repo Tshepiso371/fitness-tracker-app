@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'screens/bmi_screen.dart';
+import 'screens/exercise_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -12,7 +13,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Fitness Tracker',
-      home: HomeScreen(),
+      debugShowCheckedModeBanner: false,
+      home: const HomeScreen(),
     );
   }
 }
@@ -28,11 +30,11 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Colors.pinkAccent,
         actions: [
           IconButton(
-            icon: Icon(Icons.calculate),
+            icon: const Icon(Icons.calculate),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => BMIScreen()),
+                MaterialPageRoute(builder: (_) => const BMIScreen()),
               );
             },
           ),
@@ -42,9 +44,10 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         children: [
 
+          // :fire: Banner
           Container(
             height: 180,
-            margin: EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
             child: Stack(
               children: [
 
@@ -55,7 +58,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
 
-                Positioned(
+                const Positioned(
                   top: 20,
                   left: 20,
                   child: Column(
@@ -84,12 +87,12 @@ class HomeScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Workout Started! "),
+                        const SnackBar(
+                          content: Text("Workout Started!"),
                         ),
                       );
                     },
-                    child: Text("Start"),
+                    child: const Text("Start"),
                   ),
                 ),
 
@@ -97,6 +100,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
+          // :fire: Grid
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -113,7 +117,7 @@ class HomeScreen extends StatelessWidget {
 
                 return GridView.count(
                   crossAxisCount: crossAxisCount,
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
                   children: const [
 
                     WorkoutTile(title: "Cardio", color: Colors.lightBlueAccent),
@@ -121,7 +125,7 @@ class HomeScreen extends StatelessWidget {
                     WorkoutTile(title: "Flexibility", color: Colors.lightBlueAccent),
                     WorkoutTile(title: "HIIT", color: Colors.lightBlueAccent),
                     WorkoutTile(title: "Yoga", color: Colors.lightBlueAccent),
-                    WorkoutTile(title: "Pilates", color: Colors.lightBlueAccent)
+                    WorkoutTile(title: "Pilates", color: Colors.lightBlueAccent),
 
                   ],
                 );
@@ -131,9 +135,33 @@ class HomeScreen extends StatelessWidget {
 
         ],
       ),
+
+      // :fire: ADD EXERCISE BUTTON (IMPORTANT)
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.pinkAccent,
+        child: const Icon(Icons.add),
+        onPressed: () async {
+
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AddExerciseScreen(),
+            ),
+          );
+
+          if (result != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Exercise Added Successfully!"),
+              ),
+            );
+          }
+        },
+      ),
     );
   }
 }
+
 class WorkoutTile extends StatefulWidget {
   final String title;
   final Color color;
@@ -154,7 +182,7 @@ class _WorkoutTileState extends State<WorkoutTile> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(10),
+      margin: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: widget.color,
         borderRadius: BorderRadius.circular(15),
@@ -165,7 +193,7 @@ class _WorkoutTileState extends State<WorkoutTile> {
           Center(
             child: Text(
               widget.title,
-              style: TextStyle(color: Colors.white, fontSize: 18),
+              style: const TextStyle(color: Colors.white, fontSize: 18),
             ),
           ),
 
