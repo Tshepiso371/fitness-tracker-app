@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/bmi_screen.dart';
 import 'screens/exercise_screen.dart';
+import 'app_router.dart'; // :white_check_mark: NEW
 
 void main() {
   runApp(const MyApp());
@@ -19,7 +20,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -29,7 +29,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
 
-
   List<Map<String, dynamic>> exercises = [];
 
   @override
@@ -38,7 +37,6 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text("Fitness Tracker"),
         backgroundColor: Colors.pinkAccent,
-
 
         actions: [
           TextButton.icon(
@@ -59,7 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       body: Column(
         children: [
-
 
           Container(
             height: 180,
@@ -115,10 +112,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-
           Expanded(
-            child: exercises.isEmpty
-                ? LayoutBuilder(
+            child: LayoutBuilder(
               builder: (context, constraints) {
 
                 int crossAxisCount = 2;
@@ -134,33 +129,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 return GridView.count(
                   crossAxisCount: crossAxisCount,
                   padding: const EdgeInsets.all(10),
-                  children: const [
+                  children: [
 
-                    WorkoutTile(title: "Cardio", color: Colors.lightBlueAccent),
-                    WorkoutTile(title: "Strength", color: Colors.lightBlueAccent),
-                    WorkoutTile(title: "Flexibility", color: Colors.lightBlueAccent),
-                    WorkoutTile(title: "HIIT", color: Colors.lightBlueAccent),
-                    WorkoutTile(title: "Yoga", color: Colors.lightBlueAccent),
-                    WorkoutTile(title: "Pilates", color: Colors.lightBlueAccent),
 
+                    WorkoutTile(title: "Cardio", color: Colors.red),
+                    WorkoutTile(title: "Strength", color: Colors.blue),
+                    WorkoutTile(title: "Flexibility", color: Colors.green),
+                    WorkoutTile(title: "HIIT", color: Colors.orange),
+                    WorkoutTile(title: "Yoga", color: Colors.purple),
+                    WorkoutTile(title: "Pilates", color: Colors.teal),
+
+
+                    ...exercises.map((exercise) {
+                      return WorkoutTile(
+                        title: exercise['name'],
+                        color: Colors.lightBlueAccent,
+                      );
+                    }).toList(),
                   ],
-                );
-              },
-            )
-                : ListView.builder(
-              itemCount: exercises.length,
-              itemBuilder: (context, index) {
-                final exercise = exercises[index];
-
-                return Card(
-                  margin: const EdgeInsets.all(10),
-                  child: ListTile(
-                    title: Text(exercise['name']),
-                    subtitle: Text(
-                      "${exercise['sets']} sets • ${exercise['reps']} reps • ${exercise['weight']} kg",
-                    ),
-                    trailing: Text(exercise['muscle'] ?? ""),
-                  ),
                 );
               },
             ),
@@ -216,37 +202,50 @@ class _WorkoutTileState extends State<WorkoutTile> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: widget.color,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Stack(
-        children: [
-
-          Center(
-            child: Text(
-              widget.title,
-              style: const TextStyle(color: Colors.white, fontSize: 18),
-            ),
+    return GestureDetector(
+      onTap: () {
+        // :white_check_mark: NEW TYPE-SAFE NAVIGATION
+        Navigator.of(context).pushRouteWithArgs(
+          AppRoute.exerciseList,
+          ExerciseListArgs(
+            categoryName: widget.title,
+            themeColor: widget.color,
+            iconData: Icons.fitness_center,
           ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: widget.color,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Stack(
+          children: [
 
-          Positioned(
-            right: 5,
-            child: IconButton(
-              icon: Icon(
-                isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: Colors.pink,
+            Center(
+              child: Text(
+                widget.title,
+                style: const TextStyle(color: Colors.white, fontSize: 18),
               ),
-              onPressed: () {
-                setState(() {
-                  isFavorite = !isFavorite;
-                });
-              },
             ),
-          ),
-        ],
+
+            Positioned(
+              right: 5,
+              child: IconButton(
+                icon: Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: Colors.pink,
+                ),
+                onPressed: () {
+                  setState(() {
+                    isFavorite = !isFavorite;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
