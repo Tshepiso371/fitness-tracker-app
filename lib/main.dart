@@ -19,8 +19,18 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+
+
+  List<Map<String, dynamic>> exercises = [];
 
   @override
   Widget build(BuildContext context) {
@@ -28,15 +38,21 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Fitness Tracker"),
         backgroundColor: Colors.pinkAccent,
+
+
         actions: [
-          IconButton(
-            icon: const Icon(Icons.calculate),
+          TextButton.icon(
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const BMIScreen()),
               );
             },
+            icon: const Icon(Icons.calculate, color: Colors.white),
+            label: const Text(
+              "BMI calculator",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -44,7 +60,7 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         children: [
 
-          // :fire: Banner
+
           Container(
             height: 180,
             margin: const EdgeInsets.all(10),
@@ -95,14 +111,14 @@ class HomeScreen extends StatelessWidget {
                     child: const Text("Start"),
                   ),
                 ),
-
               ],
             ),
           ),
 
-          // :fire: Grid
+
           Expanded(
-            child: LayoutBuilder(
+            child: exercises.isEmpty
+                ? LayoutBuilder(
               builder: (context, constraints) {
 
                 int crossAxisCount = 2;
@@ -130,13 +146,28 @@ class HomeScreen extends StatelessWidget {
                   ],
                 );
               },
+            )
+                : ListView.builder(
+              itemCount: exercises.length,
+              itemBuilder: (context, index) {
+                final exercise = exercises[index];
+
+                return Card(
+                  margin: const EdgeInsets.all(10),
+                  child: ListTile(
+                    title: Text(exercise['name']),
+                    subtitle: Text(
+                      "${exercise['sets']} sets • ${exercise['reps']} reps • ${exercise['weight']} kg",
+                    ),
+                    trailing: Text(exercise['muscle'] ?? ""),
+                  ),
+                );
+              },
             ),
           ),
-
         ],
       ),
 
-      // :fire: ADD EXERCISE BUTTON (IMPORTANT)
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.pinkAccent,
         child: const Icon(Icons.add),
@@ -150,6 +181,10 @@ class HomeScreen extends StatelessWidget {
           );
 
           if (result != null) {
+            setState(() {
+              exercises.add(result);
+            });
+
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Exercise Added Successfully!"),
@@ -211,7 +246,6 @@ class _WorkoutTileState extends State<WorkoutTile> {
               },
             ),
           ),
-
         ],
       ),
     );

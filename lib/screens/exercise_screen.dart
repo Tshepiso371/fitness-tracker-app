@@ -152,7 +152,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
 
                 SizedBox(height: 10),
 
-                // Weight
+
                 TextFormField(
                   controller: weightController,
                   keyboardType: TextInputType.number,
