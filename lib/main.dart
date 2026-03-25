@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'providers/routine_provider.dart';
 import 'screens/bmi_screen.dart';
-import 'screens/exercise_screen.dart';
-import 'app_router.dart'; // :white_check_mark: NEW
+import 'screens/add_exercise_screen.dart';
+import 'screens/exercise_browse_screen.dart';
+import 'screens/routine_summary_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,32 +16,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Fitness Tracker',
-      debugShowCheckedModeBanner: false,
-      home: const HomeScreen(),
+    return ChangeNotifierProvider(
+      create: (_) => RoutineProvider(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: const HomeScreen(),
+      ),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-
-  List<Map<String, dynamic>> exercises = [];
-
-  @override
   Widget build(BuildContext context) {
+    final provider = context.watch<RoutineProvider>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Fitness Tracker"),
         backgroundColor: Colors.pinkAccent,
-
         actions: [
           TextButton.icon(
             onPressed: () {
@@ -47,10 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
             icon: const Icon(Icons.calculate, color: Colors.white),
-            label: const Text(
-              "BMI calculator",
-              style: TextStyle(color: Colors.white),
-            ),
+            label: const Text("BMI", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -58,18 +54,16 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
 
+          // :fire: Banner (UNCHANGED)
           Container(
             height: 180,
             margin: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.pinkAccent,
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: Stack(
               children: [
-
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.pinkAccent,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
 
                 const Positioned(
                   top: 20,
@@ -77,19 +71,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        " Morning Workout",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Text("Morning Workout",
+                          style: TextStyle(color: Colors.white, fontSize: 20)),
                       SizedBox(height: 10),
-                      Text(
-                        "Boost your energy for the day",
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      Text("Boost your energy",
+                          style: TextStyle(color: Colors.white)),
                     ],
                   ),
                 ),
@@ -98,13 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   bottom: 15,
                   right: 15,
                   child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Workout Started!"),
-                        ),
-                      );
-                    },
+                    onPressed: () {},
                     child: const Text("Start"),
                   ),
                 ),
@@ -112,41 +92,27 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
+          // :fire: SHOW ROUTINE DATA (GLOBAL)
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
+            child: provider.routine.isEmpty
+                ? const Center(child: Text("No exercises added"))
+                : ListView.builder(
+              itemCount: provider.routine.length,
+              itemBuilder: (_, i) {
+                final e = provider.routine[i];
 
-                int crossAxisCount = 2;
-
-                if (constraints.maxWidth > 600) {
-                  crossAxisCount = 3;
-                }
-
-                if (constraints.maxWidth > 900) {
-                  crossAxisCount = 4;
-                }
-
-                return GridView.count(
-                  crossAxisCount: crossAxisCount,
-                  padding: const EdgeInsets.all(10),
-                  children: [
-
-
-                    WorkoutTile(title: "Cardio", color: Colors.red),
-                    WorkoutTile(title: "Strength", color: Colors.blue),
-                    WorkoutTile(title: "Flexibility", color: Colors.green),
-                    WorkoutTile(title: "HIIT", color: Colors.orange),
-                    WorkoutTile(title: "Yoga", color: Colors.purple),
-                    WorkoutTile(title: "Pilates", color: Colors.teal),
-
-
-                    ...exercises.map((exercise) {
-                      return WorkoutTile(
-                        title: exercise['name'],
-                        color: Colors.lightBlueAccent,
-                      );
-                    }).toList(),
-                  ],
+                return ListTile(
+                  title: Text(e.name),
+                  subtitle: Text(
+                      "${e.sets} x ${e.reps} x ${e.weight}kg"),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () {
+                      context
+                          .read<RoutineProvider>()
+                          .removeExercise(e.id);
+                    },
+                  ),
                 );
               },
             ),
@@ -154,98 +120,53 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
 
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.pinkAccent,
-        child: const Icon(Icons.add),
-        onPressed: () async {
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
 
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const AddExerciseScreen(),
-            ),
-          );
-
-          if (result != null) {
-            setState(() {
-              exercises.add(result);
-            });
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Exercise Added Successfully!"),
-              ),
-            );
-          }
-        },
-      ),
-    );
-  }
-}
-
-class WorkoutTile extends StatefulWidget {
-  final String title;
-  final Color color;
-
-  const WorkoutTile({
-    super.key,
-    required this.title,
-    required this.color,
-  });
-
-  @override
-  State<WorkoutTile> createState() => _WorkoutTileState();
-}
-
-class _WorkoutTileState extends State<WorkoutTile> {
-  bool isFavorite = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // :white_check_mark: NEW TYPE-SAFE NAVIGATION
-        Navigator.of(context).pushRouteWithArgs(
-          AppRoute.exerciseList,
-          ExerciseListArgs(
-            categoryName: widget.title,
-            themeColor: widget.color,
-            iconData: Icons.fitness_center,
+          FloatingActionButton(
+            heroTag: "browse",
+            backgroundColor: Colors.blue,
+            child: const Icon(Icons.list),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const ExerciseBrowseScreen()),
+              );
+            },
           ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: widget.color,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Stack(
-          children: [
 
-            Center(
-              child: Text(
-                widget.title,
-                style: const TextStyle(color: Colors.white, fontSize: 18),
-              ),
-            ),
+          const SizedBox(height: 10),
 
-            Positioned(
-              right: 5,
-              child: IconButton(
-                icon: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: Colors.pink,
-                ),
-                onPressed: () {
-                  setState(() {
-                    isFavorite = !isFavorite;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
+          FloatingActionButton(
+            heroTag: "summary",
+            backgroundColor: Colors.green,
+            child: const Icon(Icons.analytics),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const RoutineSummaryScreen()),
+              );
+            },
+          ),
+
+          const SizedBox(height: 10),
+
+          FloatingActionButton(
+            heroTag: "add",
+            backgroundColor: Colors.pinkAccent,
+            child: const Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const AddExerciseScreen()),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
