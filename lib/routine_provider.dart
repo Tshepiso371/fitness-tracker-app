@@ -46,3 +46,59 @@ class RoutineProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+import 'package:flutter/material.dart';
+
+class Item {
+  final String id;
+  final String name;
+  final int quantity;
+  final double price;
+  final String category;
+
+  Item({
+    required this.id,
+    required this.name,
+    required this.quantity,
+    required this.price,
+    required this.category,
+  });
+}
+
+class RestockProvider extends ChangeNotifier {
+  final List<Item> _items = [];
+
+  List<Item> get items => _items;
+
+  void addItem(Item newItem) {
+    final index = _items.indexWhere((i) => i.id == newItem.id);
+
+    if (index >= 0) {
+      _items[index] = Item(
+        id: newItem.id,
+        name: newItem.name,
+        quantity: _items[index].quantity + newItem.quantity,
+        price: newItem.price,
+        category: newItem.category,
+      );
+    } else {
+      _items.add(newItem);
+    }
+
+    notifyListeners();
+  }
+
+  double get totalCost {
+    return _items.fold(0, (sum, i) => sum + (i.price * i.quantity));
+  }
+
+  Map<String, int> get categoryBreakdown {
+    final Map<String, int> map = {};
+
+    for (var item in _items) {
+      map[item.category] = (map[item.category] ?? 0) + 1;
+    }
+
+    return map;
+  }
+}
