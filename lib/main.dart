@@ -54,7 +54,7 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         children: [
 
-          // :fire: Banner (UNCHANGED)
+        
           Container(
             height: 180,
             margin: const EdgeInsets.all(10),
@@ -92,7 +92,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          // :fire: SHOW ROUTINE DATA (GLOBAL)
+          
           Expanded(
             child: provider.routine.isEmpty
                 ? const Center(child: Text("No exercises added"))
