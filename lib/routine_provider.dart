@@ -48,57 +48,135 @@ class RoutineProvider extends ChangeNotifier {
 }
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/restock_provider.dart';
 
-class Item {
-  final String id;
-  final String name;
-  final int quantity;
-  final double price;
+class AddItemScreen extends StatefulWidget {
   final String category;
 
-  Item({
-    required this.id,
-    required this.name,
-    required this.quantity,
-    required this.price,
-    required this.category,
-  });
+  AddItemScreen({required this.category});
+
+  @override
+  _AddItemScreenState createState() => _AddItemScreenState();
 }
 
-class RestockProvider extends ChangeNotifier {
-  final List<Item> _items = [];
+class _AddItemScreenState extends State<AddItemScreen> {
+  final _formKey = GlobalKey<FormState>();
 
-  List<Item> get items => _items;
+  final name = TextEditingController();
+  final qty = TextEditingController();
+  final price = TextEditingController();
 
-  void addItem(Item newItem) {
-    final index = _items.indexWhere((i) => i.id == newItem.id);
+  double total = 0;
 
-    if (index >= 0) {
-      _items[index] = Item(
-        id: newItem.id,
-        name: newItem.name,
-        quantity: _items[index].quantity + newItem.quantity,
-        price: newItem.price,
-        category: newItem.category,
-      );
-    } else {
-      _items.add(newItem);
-    }
-
-    notifyListeners();
+  @override
+  void initState() {
+    super.initState();
+    qty.addListener(updateTotal);
+    price.addListener(updateTotal);
   }
 
-  double get totalCost {
-    return _items.fold(0, (sum, i) => sum + (i.price * i.quantity));
+  void updateTotal() {
+    final q = int.tryParse(qty.text) ?? 0;
+    final p = double.tryParse(price.text) ?? 0;
+
+    setState(() {
+      total = q * p;
+    });
   }
 
-  Map<String, int> get categoryBreakdown {
-    final Map<String, int> map = {};
+  @override
+  void dispose() {
+    name.dispose();
+    qty.dispose();
+    price.dispose();
+    super.dispose();
+  }
 
-    for (var item in _items) {
-      map[item.category] = (map[item.category] ?? 0) + 1;
-    }
+  @override
+  Widget build(BuildContext context) {
+    final provider = Provider.of<RestockProvider>(context, listen: false);
 
-    return map;
+    return Scaffold(
+      appBar: AppBar(title: Text("Add Item")),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+
+              TextFormField(
+                controller: name,
+                decoration: InputDecoration(labelText: "Item Name"),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return "Required";
+                  if (v.length < 3) return "Too short";
+                  return null;
+                },
+              ),
+
+              TextFormField(
+                controller: qty,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: "Quantity"),
+                validator: (v) {
+                  if (v == null || int.tryParse(v) == null) return "Invalid";
+                  if (int.parse(v) <= 0) return "Must be > 0";
+                  return null;
+                },
+              ),
+
+              TextFormField(
+                controller: price,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: "Price"),
+                validator: (v) {
+                  if (v == null || double.tryParse(v) == null)
+                    return "Invalid";
+                  if (double.parse(v) < 0) return "No negatives";
+                  return null;
+                },
+              ),
+
+              SizedBox(height: 20),
+
+              Text("Total: R $total"),
+
+              SizedBox(height: 20),
+
+              InkWell(
+                onTap: () {
+                  if (_formKey.currentState!.validate()) {
+                    provider.addItem(
+                      Item(
+                        id: DateTime.now().toString(),
+                        name: name.text,
+                        quantity: int.parse(qty.text),
+                        price: double.parse(price.text),
+                        category: widget.category,
+                      ),
+                    );
+
+                    Navigator.pop(context);
+                  }
+                },
+                child: Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurple,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    "Save Item",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
