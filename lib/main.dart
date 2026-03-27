@@ -93,6 +93,7 @@ class HomeScreen extends StatelessWidget {
               style: const TextStyle(color: Colors.grey),
             ),
 
+        
           Container(
             height: 180,
             margin: const EdgeInsets.all(10),
@@ -129,8 +130,64 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class SettingsScreen extends StatefulWidget {
+  @override
+  _SettingsScreenState createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  double budget = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    loadBudget();
+  }
+
+  void loadBudget() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getDouble("budget") ?? 0;
+
+    setState(() {
+      budget = value < 0 ? 0 : value;
+    });
+  }
 
 
+  void saveBudget(double value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble("budget", value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Settings")),
+      body: Column(
+        children: [
+          Text("Budget: R ${budget.toStringAsFixed(2)}"),
+          Slider(
+            value: budget,
+            min: 0,
+            max: 1000,
+            onChanged: (value) {
+              setState(() {
+                budget = value;
+              });
+            },
+            onChangeEnd: (value) {
+              saveBudget(value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+          
           Expanded(
             child: provider.routine.isEmpty
                 ? const Center(child: Text("No exercises added"))
