@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
 
 import 'providers/routine_provider.dart';
+import 'providers/profile_provider.dart';
+
 import 'screens/bmi_screen.dart';
 import 'screens/add_exercise_screen.dart';
 import 'screens/exercise_browse_screen.dart';
 import 'screens/routine_summary_screen.dart';
+import 'screens/settings_profile_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,8 +18,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => RoutineProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => RoutineProvider()),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: const HomeScreen(),
@@ -32,12 +37,27 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<RoutineProvider>();
+    final profile = context.watch<ProfileProvider>(); // :white_check_mark: NEW
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("Fitness Tracker"),
         backgroundColor: Colors.pinkAccent,
         actions: [
+
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const SettingsProfileScreen(),
+                ),
+              );
+            },
+          ),
+
+
           TextButton.icon(
             onPressed: () {
               Navigator.push(
@@ -46,7 +66,7 @@ class HomeScreen extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.calculate, color: Colors.white),
-            label: const Text("BMI", style: TextStyle(color: Colors.white)),
+            label: const Text("BMI Calculator", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -54,7 +74,26 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         children: [
 
-          // :fire: Banner (UNCHANGED)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Text(
+              profile.name == "Guest" || profile.name.isEmpty
+                  ? "Welcome!"
+                  : "Welcome back, ${profile.name}!",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+
+          if (profile.weightGoal > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: Text(
+                "Goal: ${profile.weightGoal} ${profile.unit}",
+                style: const TextStyle(color: Colors.grey),
+              ),
+            ),
+
+
           Container(
             height: 180,
             margin: const EdgeInsets.all(10),
@@ -92,7 +131,6 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          // :fire: SHOW ROUTINE DATA (GLOBAL)
           Expanded(
             child: provider.routine.isEmpty
                 ? const Center(child: Text("No exercises added"))
