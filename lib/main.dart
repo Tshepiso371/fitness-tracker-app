@@ -1,5 +1,8 @@
 
 
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'providers/routine_provider.dart';
 import 'providers/profile_provider.dart';
 
@@ -37,7 +40,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<RoutineProvider>();
-    final profile = context.watch<ProfileProvider>(); // :white_check_mark: NEW
+    final profile = context.watch<ProfileProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -85,14 +88,10 @@ class HomeScreen extends StatelessWidget {
           ),
 
           if (profile.weightGoal > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 5),
-              child: Text(
-                "Goal: ${profile.weightGoal} ${profile.unit}",
-                style: const TextStyle(color: Colors.grey),
-              ),
+            Text(
+              "Goal: ${profile.weightGoal} ${profile.unit}",
+              style: const TextStyle(color: Colors.grey),
             ),
-
 
           Container(
             height: 180,
@@ -131,6 +130,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
+
           Expanded(
             child: provider.routine.isEmpty
                 ? const Center(child: Text("No exercises added"))
@@ -141,14 +141,44 @@ class HomeScreen extends StatelessWidget {
 
                 return ListTile(
                   title: Text(e.name),
-                  subtitle: Text(
-                      "${e.sets} x ${e.reps} x ${e.weight}kg"),
+                  subtitle:
+                  Text("${e.sets} x ${e.reps} x ${e.weight}kg"),
+
                   trailing: IconButton(
                     icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      context
-                          .read<RoutineProvider>()
-                          .removeExercise(e.id);
+                    onPressed: () async {
+
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text("Delete Exercise"),
+                          content: const Text(
+                              "Are you sure you want to delete this exercise?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(context, false),
+                              child: const Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(context, true),
+                              child: const Text("Delete"),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        context
+                            .read<RoutineProvider>()
+                            .removeExercise(e.id);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Exercise deleted")),
+                        );
+                      }
                     },
                   ),
                 );
