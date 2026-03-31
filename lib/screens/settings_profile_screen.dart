@@ -103,10 +103,10 @@ class _SettingsProfileScreenState
 
                 if (confirm == true) {
 
-                  context.read<ProfileProvider>().updateProfile(
-                    nameController.text,
-                    double.tryParse(goalController.text) ?? 0,
-                    selectedUnit,
+                  context.read<ProfileProvider>().resetProfile(
+                    //nameController.text,
+                   // double.tryParse(goalController.text) ?? 0,
+                   // selectedUnit,
                   );
 
                   ScaffoldMessenger.of(context).showSnackBar(
