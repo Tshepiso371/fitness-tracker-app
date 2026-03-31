@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 
 import 'data/profile_repository.dart';
 import 'data/routine_repository.dart';
+import 'data/exercise_api_repository.dart';
 
 import 'domain/profile_provider.dart';
 import 'domain/routine_provider.dart';
+import 'domain/exercise_search_provider.dart';
 
 import 'presentation/home_screen.dart';
 
@@ -25,6 +27,11 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => RoutineProvider(RoutineRepository()),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) =>
+              ExerciseSearchProvider(ExerciseApiRepository()),
         ),
       ],
       child: const MaterialApp(
