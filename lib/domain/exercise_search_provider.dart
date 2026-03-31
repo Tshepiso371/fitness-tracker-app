@@ -19,19 +19,38 @@ class ExerciseSearchProvider extends ChangeNotifier {
   bool get hasResults => _results.isNotEmpty;
   bool get hasError => _error != null;
 
-  Future<void> searchExercises(String muscle) async {
-    final query = muscle.trim().toLowerCase();
+  static const Map<String, String> _muscleMapping = {
+    'legs': 'quadriceps',
+    'back': 'lats',
+    'arms': 'biceps',
+    'abs': 'abdominals',
+    'shoulders': 'traps',
+    'chest': 'chest',
+    'biceps': 'biceps',
+    'triceps': 'triceps',
+    'quads': 'quadriceps',
+    'glutes': 'glutes',
+    'hamstrings': 'hamstrings',
+    'calves': 'calves',
+  };
 
+  Future<void> searchExercises(String muscle) async {
+    String query = muscle.trim().toLowerCase();
     if (query.isEmpty) return;
 
-    _lastQuery = query;
 
+    query = _muscleMapping[query] ?? query;
+
+    _lastQuery = query;
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
       _results = await _repository.searchExercises(query);
+      if (_results.isEmpty) {
+        _error = "No exercises found for '$muscle'. Try terms like 'chest', 'biceps', 'quadriceps'.";
+      }
     } catch (e) {
       _error = e.toString();
       _results = [];

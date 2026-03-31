@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/exercise.dart';
+import '../domain/routine_provider.dart';
 
 class AddExerciseScreen extends StatefulWidget {
   const AddExerciseScreen({super.key});
@@ -58,11 +61,11 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Exercise"),
+        title: const Text("Add Exercise"),
         backgroundColor: Colors.pinkAccent,
       ),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -72,7 +75,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
 
                 TextFormField(
                   controller: nameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: "Exercise Name",
                     hintText: "e.g. Bench Press",
                     prefixIcon: Icon(Icons.fitness_center),
@@ -82,22 +85,16 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Exercise name is required';
                     }
-                    if (value.length < 3) {
-                      return 'Name must be at least 3 characters';
-                    }
-                    if (value.length > 50) {
-                      return 'Name cannot exceed 50 characters';
-                    }
                     return null;
                   },
                 ),
 
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
 
                 TextFormField(
                   controller: setsController,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: "Sets",
                     hintText: "e.g. 3",
                     prefixIcon: Icon(Icons.format_list_numbered),
@@ -107,26 +104,16 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Number of sets is required';
                     }
-                    final sets = int.tryParse(value);
-                    if (sets == null) {
-                      return 'Sets must be a whole number';
-                    }
-                    if (sets <= 0) {
-                      return 'Sets must be greater than zero';
-                    }
-                    if (sets > 20) {
-                      return 'Sets cannot exceed 20';
-                    }
                     return null;
                   },
                 ),
 
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
 
                 TextFormField(
                   controller: repsController,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: "Reps",
                     hintText: "e.g. 10",
                     prefixIcon: Icon(Icons.repeat),
@@ -136,27 +123,17 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Number of reps is required';
                     }
-                    final reps = int.tryParse(value);
-                    if (reps == null) {
-                      return 'Reps must be a whole number';
-                    }
-                    if (reps <= 0) {
-                      return 'Reps must be greater than zero';
-                    }
-                    if (reps > 100) {
-                      return 'Reps cannot exceed 100';
-                    }
                     return null;
                   },
                 ),
 
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
 
 
                 TextFormField(
                   controller: weightController,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: "Weight",
                     hintText: "e.g. 20",
                     prefixIcon: Icon(Icons.fitness_center),
@@ -167,25 +144,15 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Weight is required';
                     }
-                    final weight = double.tryParse(value);
-                    if (weight == null) {
-                      return 'Weight must be a valid number';
-                    }
-                    if (weight < 0) {
-                      return 'Weight cannot be negative';
-                    }
-                    if (weight > 500) {
-                      return 'Weight cannot exceed 500kg';
-                    }
                     return null;
                   },
                 ),
 
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
 
                 DropdownButtonFormField<String>(
                   value: selectedMuscle,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Select Muscle Group...",
                     border: OutlineInputBorder(),
                   ),
@@ -215,11 +182,11 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                   },
                 ),
 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
 
 
                 Container(
-                  padding: EdgeInsets.all(15),
+                  padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
                     color: Colors.grey[300],
                     borderRadius: BorderRadius.circular(10),
@@ -228,31 +195,34 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                     totalVolume == 0
                         ? "Total Volume: --"
                         : "Total Volume: ${totalVolume.toStringAsFixed(0)} kg",
-                    style: TextStyle(fontSize: 18),
+                    style: const TextStyle(fontSize: 18),
                   ),
                 ),
 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
 
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 50),
+                    minimumSize: const Size(double.infinity, 50),
                   ),
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
+                      
+                      final exercise = Exercise(
+                        id: DateTime.now().toString(),
+                        name: nameController.text,
+                        sets: int.parse(setsController.text),
+                        reps: int.parse(repsController.text),
+                        weight: double.parse(weightController.text),
+                        muscleGroup: selectedMuscle!,
+                      );
 
-                      final exerciseData = {
-                        'name': nameController.text,
-                        'sets': setsController.text,
-                        'reps': repsController.text,
-                        'weight': weightController.text,
-                        'muscle': selectedMuscle,
-                      };
-
-                      Navigator.pop(context, exerciseData);
+                      context.read<RoutineProvider>().addExercise(exercise);
+                      
+                      Navigator.pop(context);
                     }
                   },
-                  child: Text("Save Exercise"),
+                  child: const Text("Save Exercise"),
                 ),
 
               ],

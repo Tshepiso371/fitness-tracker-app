@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'app_router.dart';
+import "../app_router.dart";
 
 class ExerciseListScreen extends StatelessWidget {
   final String categoryName;

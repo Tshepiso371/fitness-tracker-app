@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'exercise_list_screen.dart';
-import 'exercise_detail_screen.dart';
+import 'screens/exercise_list_screen.dart';
+import 'screens/exercise_detail_screen.dart';
 
 
 class ExerciseListArgs {

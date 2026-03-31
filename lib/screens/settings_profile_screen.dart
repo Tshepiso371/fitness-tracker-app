@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/profile_provider.dart';
+import '../domain/profile_provider.dart';
 
 class SettingsProfileScreen extends StatefulWidget {
   const SettingsProfileScreen({super.key});
@@ -18,13 +18,23 @@ class _SettingsProfileScreenState
   String selectedUnit = "kg";
 
   @override
-  Widget build(BuildContext context) {
-    final profile = context.watch<ProfileProvider>();
-
+  void initState() {
+    super.initState();
+    final profile = context.read<ProfileProvider>();
     nameController.text = profile.name;
     goalController.text = profile.weightGoal.toString();
     selectedUnit = profile.unit;
+  }
 
+  @override
+  void dispose() {
+    nameController.dispose();
+    goalController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Profile Settings"),
@@ -102,19 +112,19 @@ class _SettingsProfileScreenState
                 );
 
                 if (confirm == true) {
+                  final provider = context.read<ProfileProvider>();
+                  
+                  await provider.updateName(nameController.text);
+                  await provider.updateGoal(double.tryParse(goalController.text) ?? 0);
+                  await provider.updateUnit(selectedUnit);
 
-                  context.read<ProfileProvider>().resetProfile(
-                    //nameController.text,
-                   // double.tryParse(goalController.text) ?? 0,
-                   // selectedUnit,
-                  );
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text("Profile saved successfully")),
-                  );
-
-                  Navigator.pop(context);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("Profile saved successfully")),
+                    );
+                    Navigator.pop(context);
+                  }
                 }
               },
               child: const Text("Save Profile"),

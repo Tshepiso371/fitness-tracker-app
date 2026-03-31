@@ -11,6 +11,7 @@ import 'domain/exercise_search_provider.dart';
 
 import 'presentation/home_screen.dart';
 
+
 void main() {
   runApp(const MyApp());
 }

@@ -19,14 +19,18 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
     super.dispose();
   }
 
-  void search() {
-    context.read<ExerciseSearchProvider>()
-        .searchExercises(controller.text);
+  void search(String text) {
+    if (text.trim().isEmpty) return;
+    context.read<ExerciseSearchProvider>().searchExercises(text);
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ExerciseSearchProvider>();
+
+    final commonMuscles = [
+      'Chest', 'Biceps', 'Triceps', 'Back', 'Legs', 'Abs', 'Shoulders'
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -37,7 +41,6 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-
             TextField(
               controller: controller,
               decoration: InputDecoration(
@@ -45,23 +48,34 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.send),
-                  onPressed: provider.isLoading ? null : search,
+                  onPressed: () => search(controller.text),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
+              onSubmitted: (value) => search(value),
+            ),
 
+            const SizedBox(height: 10),
 
-              onChanged: (value) {
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (value == controller.text) {
-                    search();
-                  }
-                });
-              },
-
-              onSubmitted: (_) => search(),
+            SizedBox(
+              height: 40,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: commonMuscles.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final muscle = commonMuscles[index];
+                  return ActionChip(
+                    label: Text(muscle),
+                    onPressed: () {
+                      controller.text = muscle;
+                      search(muscle);
+                    },
+                  );
+                },
+              ),
             ),
 
             const SizedBox(height: 20),
@@ -69,25 +83,26 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
             Expanded(
               child: Builder(
                 builder: (_) {
-
                   if (provider.isLoading) {
-                    return const Center(
-                        child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (provider.hasError) {
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.cloud_off, size: 50),
-                        const SizedBox(height: 10),
-                        Text(provider.error!),
-                        const SizedBox(height: 10),
-                        ElevatedButton(
-                          onPressed: provider.retry,
-                          child: const Text("Retry"),
-                        )
-                      ],
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.info_outline, size: 50, color: Colors.orange),
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              provider.error!,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   }
 
@@ -100,12 +115,19 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                         return Card(
                           child: ExpansionTile(
                             title: Text(e.name),
-                            subtitle: Text(
-                                "${e.muscle} • ${e.difficulty}"),
+                            subtitle: Text("${e.muscle} • ${e.difficulty}"),
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(10),
-                                child: Text(e.instructions),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text("Instructions:", 
+                                      style: TextStyle(fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 5),
+                                    Text(e.instructions),
+                                  ],
+                                ),
                               )
                             ],
                           ),
@@ -121,7 +143,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                         Icon(Icons.search, size: 60, color: Colors.grey),
                         SizedBox(height: 10),
                         Text(
-                          "Search for exercises",
+                          "Search for exercises by muscle group",
                           style: TextStyle(fontSize: 16),
                         ),
                       ],
