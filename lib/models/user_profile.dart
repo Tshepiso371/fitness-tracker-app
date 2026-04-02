@@ -80,32 +80,3 @@ class UserProfile {
   }
 }
 
-class WeatherLog {
-  final double latitude;
-  final double longitude;
-  final double temperature;
-  final String condition;
-
-  WeatherLog({
-    required this.latitude,
-    required this.longitude,
-    required this.temperature,
-    required this.condition,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'lat': latitude,
-        'lon': longitude,
-        'temp': temperature,
-        'condition': condition,
-      };
-
-  factory WeatherLog.fromJson(Map<String, dynamic> json) {
-    return WeatherLog(
-      latitude: json['lat'],
-      longitude: json['lon'],
-      temperature: json['temp'],
-      condition: json['condition'],
-    );
-  }
-}
