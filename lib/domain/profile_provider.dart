@@ -67,3 +67,34 @@ class ProfileProvider extends ChangeNotifier {
     await _repository.saveProfile(_profile);
   }
 }
+
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/weather_log.dart';
+
+class WeatherLogProvider extends ChangeNotifier {
+  List<WeatherLog> _logs = [];
+
+  List<WeatherLog> get logs => _logs;
+
+  Future<void> loadLogs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString('logs');
+
+    if (data != null) {
+      List decoded = jsonDecode(data);
+      _logs = decoded.map((e) => WeatherLog.fromJson(e)).toList();
+      notifyListeners();
+    }
+  }
+
+  Future<void> addLog(WeatherLog log) async {
+    _logs.add(log);
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(
+        'logs', jsonEncode(_logs.map((e) => e.toJson()).toList()));
+  }
+}
