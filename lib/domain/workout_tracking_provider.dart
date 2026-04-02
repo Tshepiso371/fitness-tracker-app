@@ -2,12 +2,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../data/location_service.dart';
+import '../data/notification_service.dart';
 
 enum WorkoutPhase { idle, selecting, active, finished }
 enum WorkoutActivityType { walking, running, cycling }
 
 class WorkoutTrackingProvider extends ChangeNotifier {
   final LocationService _locationService;
+  final NotificationService _notificationService = NotificationService();
 
   WorkoutTrackingProvider(this._locationService);
 
@@ -67,7 +69,6 @@ class WorkoutTrackingProvider extends ChangeNotifier {
     return "$paceMin:${paceSec.toString().padLeft(2, '0')} min/km";
   }
 
-  // Recommendation logic
   String get routeRecommendation {
     switch (_selectedActivity) {
       case WorkoutActivityType.walking:
@@ -89,7 +90,6 @@ class WorkoutTrackingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // START
   Future<void> startWorkout() async {
     _isLoadingLocation = true;
     _errorMessage = null;
@@ -97,12 +97,10 @@ class WorkoutTrackingProvider extends ChangeNotifier {
 
     try {
       final pos = await _locationService.getCurrentPosition();
-
       _startPosition = pos;
       _currentPosition = pos;
       _startTime = DateTime.now();
       _routePoints = [pos];
-
       _phase = WorkoutPhase.active;
 
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -118,24 +116,12 @@ class WorkoutTrackingProvider extends ChangeNotifier {
           notifyListeners();
         } catch (e) {}
       });
-
     } catch (e) {
       _errorMessage = e.toString().replaceAll("Exception: ", "");
       _phase = WorkoutPhase.idle;
     } finally {
       _isLoadingLocation = false;
       notifyListeners();
-    }
-  }
-
-  Future<void> updateLocation() async {
-    if (_phase != WorkoutPhase.active) return;
-    try {
-      final pos = await _locationService.getCurrentPosition();
-      _currentPosition = pos;
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString();
     }
   }
 
@@ -161,6 +147,15 @@ class WorkoutTrackingProvider extends ChangeNotifier {
       }
       _distanceMeters = totalDist;
       _phase = WorkoutPhase.finished;
+
+      // TRIGGER NOTIFICATION (Requirement 9)
+      await _notificationService.showWorkoutCompleteAlert(
+        workoutName: _selectedActivity.name,
+        distanceKm: _distanceMeters / 1000,
+        time: formattedTime,
+        pace: formattedPace,
+      );
+
     } catch (e) {
       _errorMessage = e.toString();
       _phase = WorkoutPhase.finished;
