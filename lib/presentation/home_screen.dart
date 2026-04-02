@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../domain/routine_provider.dart';
 import '../domain/profile_provider.dart';
+import '../domain/auth_provider.dart';
 
 import '../screens/bmi_screen.dart';
 import '../screens/add_exercise_screen.dart';
@@ -10,7 +11,6 @@ import '../screens/exercise_browse_screen.dart';
 import '../screens/routine_summary_screen.dart';
 import '../screens/settings_profile_screen.dart';
 import 'exercise_search_screen.dart';
-
 import 'outdoor_workout_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -20,14 +20,20 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<RoutineProvider>();
     final profileProvider = context.watch<ProfileProvider>();
+    final auth = context.watch<AuthProvider>();
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text("Fitness Tracker", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text(
+          "Fitness Tracker",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         elevation: 0,
         backgroundColor: Colors.pinkAccent,
         actions: [
+
+          //  SEARCH
           IconButton(
             icon: const Icon(Icons.search, color: Colors.white),
             onPressed: () {
@@ -39,6 +45,8 @@ class HomeScreen extends StatelessWidget {
               );
             },
           ),
+
+          //  SETTINGS
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
             onPressed: () {
@@ -50,6 +58,8 @@ class HomeScreen extends StatelessWidget {
               );
             },
           ),
+
+          //  BMI
           TextButton.icon(
             onPressed: () {
               Navigator.push(
@@ -60,41 +70,90 @@ class HomeScreen extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.calculate, color: Colors.white),
-            label: const Text("BMI", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            label: const Text(
+              "BMI",
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+
+          //  LOGOUT
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'logout') {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text("Sign Out"),
+                    content: const Text(
+                        "Are you sure you want to sign out?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.pop(context, false),
+                        child: const Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.pop(context, true),
+                        child: const Text("Sign Out"),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm == true) {
+                  await context.read<AuthProvider>().logout();
+                }
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'logout',
+                child: Text("Sign Out"),
+              ),
+            ],
           ),
         ],
       ),
+
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Welcome Header
+
+          //  PERSONALIZED GREETING
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Welcome, ${profileProvider.name}!",
+                  "Welcome, ${auth.userName ?? (auth.userEmail != null ? auth.userEmail!.split('@')[0] : 'Guest')}!",
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
                   ),
                 ),
+                
+                if (auth.lastSignIn != null)
+                  Text(
+                    "Last signed in: ${auth.lastSignIn!.toLocal()}",
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+
                 if (profileProvider.weightGoal > 0)
                   Text(
                     "Target: ${profileProvider.weightGoal} ${profileProvider.unit}",
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.pinkAccent.shade700,
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
               ],
             ),
           ),
 
-          // Main Card
+          //  MAIN CARD
           Container(
             height: 160,
             width: double.infinity,
@@ -102,17 +161,8 @@ class HomeScreen extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Colors.pinkAccent, Colors.orangeAccent],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.pinkAccent.withOpacity(0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
-                )
-              ],
             ),
             child: Stack(
               children: [
@@ -129,37 +179,34 @@ class HomeScreen extends StatelessWidget {
                               fontWeight: FontWeight.bold)),
                       SizedBox(height: 4),
                       Text("Keep up the great work!",
-                          style: TextStyle(color: Colors.white70, fontSize: 16)),
+                          style:
+                          TextStyle(color: Colors.white70)),
                     ],
                   ),
                 ),
+
                 Positioned(
                   bottom: 20,
                   right: 20,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.pinkAccent,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
                     onPressed: () {},
-                    child: const Text("Start Workout", style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text("Start Workout"),
                   ),
                 ),
               ],
             ),
           ),
 
-          // Quick Actions Row (Modern replacement for extra FABs)
+          //  QUICK ACTIONS
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+            padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment:
+              MainAxisAlignment.spaceAround,
               children: [
+
+                //  OUTDOOR WORKOUT
                 _QuickActionItem(
                   icon: Icons.directions_run,
                   label: "Outdoor",
@@ -168,11 +215,14 @@ class HomeScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const OutdoorWorkoutScreen(),
+                        builder: (_) =>
+                        const OutdoorWorkoutScreen(),
                       ),
                     );
                   },
                 ),
+
+
                 _QuickActionItem(
                   icon: Icons.list,
                   label: "Browse",
@@ -181,11 +231,14 @@ class HomeScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ExerciseBrowseScreen(),
+                        builder: (_) =>
+                        const ExerciseBrowseScreen(),
                       ),
                     );
                   },
                 ),
+
+                // SUMMARY
                 _QuickActionItem(
                   icon: Icons.analytics,
                   label: "Summary",
@@ -194,7 +247,8 @@ class HomeScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const RoutineSummaryScreen(),
+                        builder: (_) =>
+                        const RoutineSummaryScreen(),
                       ),
                     );
                   },
@@ -204,99 +258,88 @@ class HomeScreen extends StatelessWidget {
           ),
 
           const Padding(
-            padding: EdgeInsets.fromLTRB(20, 10, 16, 10),
+            padding:
+            EdgeInsets.fromLTRB(20, 10, 16, 10),
             child: Text(
               "Today's Exercises",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800),
             ),
           ),
 
+          // EXERCISE LIST
           Expanded(
             child: provider.routine.isEmpty
                 ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.fitness_center, size: 60, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text("No exercises added yet", style: TextStyle(color: Colors.grey, fontSize: 16)),
-                      ],
-                    ),
-                  )
+              child: Text("No exercises added yet"),
+            )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: provider.routine.length,
-                    itemBuilder: (context, i) {
-                      final e = provider.routine[i];
+              itemCount: provider.routine.length,
+              itemBuilder: (context, i) {
+                final e = provider.routine[i];
 
-                      return Card(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                          leading: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.pinkAccent.withOpacity(0.1),
-                              shape: BoxShape.circle,
+                return ListTile(
+                  title: Text(e.name),
+                  subtitle: Text(
+                      "${e.sets} x ${e.reps} x ${e.weight}${profileProvider.unit}"),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () async {
+                      final confirm =
+                      await showDialog<bool>(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text(
+                              "Remove Exercise"),
+                          content: Text(
+                              "Remove ${e.name}?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(
+                                      context, false),
+                              child:
+                              const Text("Cancel"),
                             ),
-                            child: const Icon(Icons.fitness_center, color: Colors.pinkAccent),
-                          ),
-                          title: Text(e.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          subtitle: Text(
-                              "${e.sets} sets • ${e.reps} reps • ${e.weight}${profileProvider.unit}",
-                              style: TextStyle(color: Colors.grey[600])),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete_outline,
-                                color: Colors.redAccent),
-                            onPressed: () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                  title: const Text("Remove Exercise"),
-                                  content: Text(
-                                      "Remove ${e.name} from your routine?"),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, false),
-                                      child: const Text("Cancel"),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, true),
-                                      child: const Text("Remove", style: TextStyle(color: Colors.red)),
-                                    ),
-                                  ],
-                                ),
-                              );
-
-                              if (confirm == true) {
-                                context
-                                    .read<RoutineProvider>()
-                                    .removeExercise(e.id);
-                              }
-                            },
-                          ),
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(
+                                      context, true),
+                              child:
+                              const Text("Remove"),
+                            ),
+                          ],
                         ),
                       );
+
+                      if (confirm == true) {
+                        context
+                            .read<RoutineProvider>()
+                            .removeExercise(e.id);
+                      }
                     },
                   ),
+                );
+              },
+            ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+
+      //  ADD BUTTON
+      floatingActionButton:
+      FloatingActionButton.extended(
         backgroundColor: Colors.pinkAccent,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text("Add Exercise", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        label: const Text("Add Exercise",
+            style: TextStyle(color: Colors.white)),
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const AddExerciseScreen(),
+              builder: (_) =>
+              const AddExerciseScreen(),
             ),
           );
         },
@@ -305,7 +348,7 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// Helper Widget for Modern Quick Actions
+
 class _QuickActionItem extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -334,14 +377,7 @@ class _QuickActionItem extends StatelessWidget {
             child: Icon(icon, color: color, size: 28),
           ),
           const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Colors.grey[800],
-            ),
-          ),
+          Text(label),
         ],
       ),
     );
