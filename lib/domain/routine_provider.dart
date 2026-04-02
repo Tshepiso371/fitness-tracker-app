@@ -30,3 +30,21 @@ class RoutineProvider extends ChangeNotifier {
     await _repository.saveRoutine(_routine);
   }
 }
+import 'package:dio/dio.dart';
+
+class WeatherRepository {
+  final Dio dio = Dio();
+
+  Future<double> getTemperature(double lat, double lon) async {
+    final response = await dio.get(
+      'https://api.open-meteo.com/v1/forecast',
+      queryParameters: {
+        'latitude': lat,
+        'longitude': lon,
+        'current_weather': true,
+      },
+    );
+
+    return response.data['current_weather']['temperature'];
+  }
+}
